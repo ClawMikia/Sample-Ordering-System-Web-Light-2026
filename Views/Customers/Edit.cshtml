@@ -1,0 +1,56 @@
+@model OrderFlowMVC.Models.UpdateCustomerRequest
+@{ Layout = "_Layout"; ViewData["Title"] = "Edit Customer"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Edit Customer</h1>
+        <p>@ViewBag.FullName · Customer #@ViewBag.CustomerId</p>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="form-card">
+    <form asp-action="Edit" asp-route-id="@ViewBag.CustomerId" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-grid form-grid-2">
+            <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="field-validation-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="field-validation-error"></span>
+            </div>
+            <div class="form-group col-2">
+                <label class="form-label">Email Address</label>
+                <input asp-for="Email" type="email" class="form-control" />
+                <span asp-validation-for="Email" class="field-validation-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input asp-for="Phone" class="form-control" />
+                <span asp-validation-for="Phone" class="field-validation-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <input asp-for="Address" class="form-control" />
+                <span asp-validation-for="Address" class="field-validation-error"></span>
+            </div>
+            <div class="form-group col-2">
+                <label class="form-check">
+                    <input asp-for="IsActive" type="checkbox" />
+                    <span>Active Customer</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-actions" style="margin-top:20px;">
+            <button type="submit" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                Save Changes
+            </button>
+            <a asp-action="Details" asp-route-id="@ViewBag.CustomerId" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>

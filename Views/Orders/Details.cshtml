@@ -1,0 +1,97 @@
+@model OrderFlowMVC.Models.OrderDto
+@{ Layout = "_Layout"; ViewData["Title"] = $"Order #{Model.Id}"; var role = Context.Session.GetString("Role"); var statuses = new[] { "Pending","Processing","Shipped","Delivered","Cancelled" }; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Order #@Model.Id</h1>
+        <p>@Model.CustomerName · @Model.OrderDate.ToString("MMMM d, yyyy hh:mm tt")</p>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="detail-grid">
+    <div>
+        <div class="panel mb-4">
+            <div class="panel-header"><span class="panel-title">Order Items</span><span class="badge badge-processing">@Model.Items?.Count items</span></div>
+            <div class="panel-body">
+                <table class="data-table">
+                    <thead><tr><th>Product</th><th class="text-right">Qty</th><th class="text-right">Unit Price</th><th class="text-right">Subtotal</th></tr></thead>
+                    <tbody>
+                    @if (Model.Items != null) {
+                        @foreach (var item in Model.Items) {
+                            <tr>
+                                <td><strong>@item.ProductName</strong><br><span style="font-size:.75rem;color:var(--text-3);">Product #@item.ProductId</span></td>
+                                <td class="text-right">@item.Quantity</td>
+                                <td class="text-right font-mono">₱@item.UnitPrice.ToString("N2")</td>
+                                <td class="text-right font-mono"><strong>₱@item.Subtotal.ToString("N2")</strong></td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                    <tfoot>
+                        <tr><td colspan="3" style="text-align:right;padding:16px 20px;font-weight:700;color:var(--text-2);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">TOTAL</td>
+                        <td style="text-align:right;padding:16px 20px;font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:800;color:var(--accent-2);">₱@Model.TotalAmount.ToString("N2")</td></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Notes</span></div>
+                <div style="padding:16px 22px;font-size:.875rem;color:var(--text-2);line-height:1.7;">@Model.Notes</div>
+            </div>
+        }
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="panel">
+            <div class="panel-header"><span class="panel-title">Order Status</span></div>
+            <div style="padding:20px;">
+                <div style="margin-bottom:16px;">
+                    <span class="badge badge-@Model.Status.ToLower()" style="font-size:.85rem;padding:6px 14px;">@Model.Status</span>
+                </div>
+                @if (role == "Admin") {
+                    <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label class="form-label">Update Status</label>
+                            <select name="status" class="form-control">
+                                @foreach (var s in statuses) {
+                                    if (s == Model.Status) { <option value="@s" selected>@s</option> }
+                                    else { <option value="@s">@s</option> }
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">Update Status</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header"><span class="panel-title">Customer</span></div>
+            <div style="padding:16px 20px;">
+                <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" style="font-weight:700;color:var(--accent);text-decoration:none;">@Model.CustomerName</a>
+                <div style="font-size:.78rem;color:var(--text-3);margin-top:4px;">Customer #@Model.CustomerId</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header"><span class="panel-title">Summary</span></div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+                <div class="summary-row"><span class="text-muted">Order Date</span><span>@Model.OrderDate.ToString("MMM d, yyyy")</span></div>
+                <div class="summary-row"><span class="text-muted">Items</span><span>@Model.Items?.Count</span></div>
+                <div class="summary-row" style="border-bottom:none;"><span class="text-muted">Total</span><span class="summary-total" style="color:var(--accent-2);">₱@Model.TotalAmount.ToString("N2")</span></div>
+            </div>
+        </div>
+
+        @if (role == "Admin") {
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete Order #@Model.Id? This cannot be undone.')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger" style="width:100%;justify-content:center;">Delete Order</button>
+            </form>
+        }
+    </div>
+</div>

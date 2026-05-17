@@ -1,0 +1,90 @@
+@model List<OrderFlowMVC.Models.ProductDto>
+@{ Layout = "_Layout"; ViewData["Title"] = "Products"; var role = Context.Session.GetString("Role"); var cats = ViewBag.Categories as List<string> ?? new(); }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Products</h1>
+        <p>@Model.Count product(s) in catalog</p>
+    </div>
+    <div class="flex gap-3 items-center">
+        @if (role == "Admin") {
+            <a asp-action="Create" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Product
+            </a>
+        }
+    </div>
+</div>
+
+<div class="filter-pills mb-6">
+    <a asp-action="Index" class="pill @(ViewBag.SelectedCategory == null && ViewBag.LowStock == null ? "active" : "")">All</a>
+    @foreach (var cat in cats)
+    {
+        <a asp-action="Index" asp-route-category="@cat" class="pill @(ViewBag.SelectedCategory == cat ? "active" : "")">@cat</a>
+    }
+    <a asp-action="Index" asp-route-lowStock="true" class="pill @(ViewBag.LowStock == true ? "active" : "")" style="@(ViewBag.LowStock == true ? "" : "border-color:rgba(255,181,71,.3);color:var(--warn);")">
+        ⚠ Low Stock
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="panel">
+        <div class="empty-state">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            <p>No products found</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="product-grid">
+    @foreach (var p in Model)
+    {
+        <div class="product-card">
+            <div class="product-category">@p.Category</div>
+            <div class="product-name">@p.Name</div>
+            <div class="product-desc">@p.Description</div>
+            <div class="product-footer">
+                <div class="product-price">₱@p.Price.ToString("N0")</div>
+                <span class="badge @(p.StockQuantity < 10 ? "badge-lowstock" : "badge-active")">
+                    @p.StockQuantity stock
+                </span>
+            </div>
+            <div class="product-footer" style="margin-top:8px;padding-top:10px;border-top:1px solid var(--border);">
+                <span class="badge @(p.IsActive ? "badge-active" : "badge-inactive")">@(p.IsActive ? "Active" : "Inactive")</span>
+                <div class="actions-cell">
+                    <a asp-action="Details" asp-route-id="@p.Id" class="btn-icon" title="View"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                    @if (role == "Admin") {
+                        <a asp-action="Edit" asp-route-id="@p.Id" class="btn-icon" title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a>
+                        <button class="btn-icon" style="color:var(--danger)" title="Delete" onclick="confirmDelete(@p.Id,'@p.Name.Replace("'","\\'")')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+}
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <div class="modal-title">Delete Product?</div>
+        <div class="modal-body" id="deleteMsg"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancel</button>
+            <form id="deleteForm" method="post">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function confirmDelete(id, name) {
+    document.getElementById('deleteMsg').textContent = `Delete "${name}"? This cannot be undone.`;
+    document.getElementById('deleteForm').action = `/Products/Delete/${id}`;
+    document.getElementById('deleteModal').classList.add('open');
+}
+</script>
+}

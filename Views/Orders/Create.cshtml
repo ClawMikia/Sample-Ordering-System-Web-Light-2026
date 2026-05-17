@@ -1,0 +1,122 @@
+@model OrderFlowMVC.ViewModels.CreateOrderViewModel
+@{ Layout = "_Layout"; ViewData["Title"] = "New Order"; }
+
+<div class="page-header">
+    <div class="page-header-left"><h1>New Order</h1><p>Build and place an order</p></div>
+    <a asp-action="Index" class="btn btn-secondary">← Back</a>
+</div>
+
+<form id="orderForm" asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="order-builder">
+        <div>
+            <!-- Customer + Notes -->
+            <div class="panel mb-4">
+                <div class="panel-header"><span class="panel-title">Order Details</span></div>
+                <div style="padding:20px;display:grid;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Customer</label>
+                        <select name="CustomerId" class="form-control" required>
+                            <option value="">— Select a customer —</option>
+                            @foreach (var c in Model.Customers) {
+                                <option value="@c.Id">@c.FullName (@c.Email)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea name="Notes" class="form-control" placeholder="Delivery instructions, special requests…"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Order Items</span>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addItem()">+ Add Item</button>
+                </div>
+                <div style="padding:16px;" id="itemsContainer">
+                    <div class="empty-state" id="emptyMsg" style="padding:30px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                        <p>Click "Add Item" to start building the order</p>
+                    </div>
+                    <div class="order-items-list" id="itemsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary sidebar -->
+        <div class="order-summary-card">
+            <div style="font-family:'Fraunces',Georgia,serif;font-size:1rem;font-weight:700;margin-bottom:16px;">Order Summary</div>
+            <div id="summaryLines" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;min-height:60px;">
+                <div style="font-size:.8rem;color:var(--text-3);">No items added yet</div>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:18px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:.85rem;color:var(--text-2);">Total</span>
+                    <span class="summary-total" id="totalDisplay">₱0.00</span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="submitBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                Place Order
+            </button>
+            <div style="font-size:.75rem;color:var(--text-3);text-align:center;margin-top:10px;">Stock will be deducted automatically</div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
+let itemCount = 0;
+
+function addItem() {
+    document.getElementById('emptyMsg').style.display = 'none';
+    const idx = itemCount++;
+    const div = document.createElement('div');
+    div.className = 'order-item-row';
+    div.id = `item_${idx}`;
+    div.innerHTML = `
+        <select name="Items[${idx}].ProductId" class="form-control" onchange="updateSummary()" required>
+            <option value="">— Product —</option>
+            ${products.map(p => `<option value="${p.id}" data-price="${p.price}" data-stock="${p.stockQuantity}">${p.name} · ₱${Number(p.price).toLocaleString('en-PH',{minimumFractionDigits:2})} (${p.stockQuantity} left)</option>`).join('')}
+        </select>
+        <input name="Items[${idx}].Quantity" type="number" min="1" max="9999" value="1" class="form-control" style="max-width:90px;" onchange="updateSummary()" required />
+        <button type="button" class="remove-item-btn" onclick="removeItem('item_${idx}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`;
+    document.getElementById('itemsList').appendChild(div);
+    updateSummary();
+}
+
+function removeItem(id) {
+    document.getElementById(id)?.remove();
+    if (document.getElementById('itemsList').children.length === 0)
+        document.getElementById('emptyMsg').style.display = '';
+    updateSummary();
+}
+
+function updateSummary() {
+    const rows = document.querySelectorAll('.order-item-row');
+    let total = 0;
+    const lines = [];
+    rows.forEach(row => {
+        const sel = row.querySelector('select');
+        const qty = parseInt(row.querySelector('input').value) || 0;
+        const opt = sel?.selectedOptions[0];
+        if (opt?.value && qty > 0) {
+            const price = parseFloat(opt.dataset.price) || 0;
+            const sub = price * qty;
+            total += sub;
+            lines.push(`<div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-2);padding:3px 0;">
+                <span>${opt.text.split('·')[0].trim()} ×${qty}</span>
+                <span>₱${sub.toLocaleString('en-PH',{minimumFractionDigits:2})}</span></div>`);
+        }
+    });
+    document.getElementById('summaryLines').innerHTML = lines.length ? lines.join('') : '<div style="font-size:.8rem;color:var(--text-3);">No items added yet</div>';
+    document.getElementById('totalDisplay').textContent = '₱' + total.toLocaleString('en-PH', {minimumFractionDigits:2});
+}
+</script>
+}

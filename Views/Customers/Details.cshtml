@@ -1,0 +1,87 @@
+@model OrderFlowMVC.Models.CustomerDto
+@{ Layout = "_Layout"; ViewData["Title"] = Model.FullName; var role = Context.Session.GetString("Role"); var orders = ViewBag.Orders as List<OrderFlowMVC.Models.OrderDto> ?? new(); }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>@Model.FullName</h1>
+        <p>Customer #@Model.Id · Joined @Model.CreatedAt.ToString("MMMM d, yyyy")</p>
+    </div>
+    <div class="flex gap-3 items-center">
+        @if (role == "Admin") { <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secondary">Edit Customer</a> }
+        <a asp-action="Index" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div>
+        <div class="panel mb-4">
+            <div class="panel-header"><span class="panel-title">Contact Information</span></div>
+            <div class="info-list">
+                <div class="info-row"><span class="info-key">Full Name</span><span class="info-val"><strong>@Model.FullName</strong></span></div>
+                <div class="info-row"><span class="info-key">Email</span><span class="info-val">@Model.Email</span></div>
+                <div class="info-row"><span class="info-key">Phone</span><span class="info-val">@Model.Phone</span></div>
+                <div class="info-row"><span class="info-key">Address</span><span class="info-val">@Model.Address</span></div>
+                <div class="info-row"><span class="info-key">Status</span><span class="info-val"><span class="badge @(Model.IsActive ? "badge-active" : "badge-inactive")">@(Model.IsActive ? "Active" : "Inactive")</span></span></div>
+                <div class="info-row"><span class="info-key">Member Since</span><span class="info-val">@Model.CreatedAt.ToString("MMMM d, yyyy")</span></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Order History</span>
+                <span class="badge badge-pending">@orders.Count orders</span>
+            </div>
+            <div class="panel-body">
+                @if (!orders.Any())
+                {
+                    <div class="empty-state" style="padding:36px;">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/></svg>
+                        <p>No orders placed yet</p>
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead><tr><th>Order #</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody>
+                        @foreach (var o in orders.OrderByDescending(x => x.OrderDate))
+                        {
+                            <tr>
+                                <td><a asp-controller="Orders" asp-action="Details" asp-route-id="@o.Id" style="color:var(--accent);text-decoration:none;font-weight:600;">#@o.Id</a></td>
+                                <td class="text-muted">@o.OrderDate.ToString("MMM d, yyyy")</td>
+                                <td class="font-mono">₱@o.TotalAmount.ToString("N2")</td>
+                                <td><span class="badge badge-@o.Status.ToLower()">@o.Status</span></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="panel">
+            <div class="panel-header"><span class="panel-title">Summary</span></div>
+            <div class="panel-body" style="padding:20px;">
+                <div style="display:flex;flex-direction:column;gap:14px;">
+                    <div>
+                        <div style="font-size:.75rem;color:var(--text-3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Total Orders</div>
+                        <div style="font-family:'Fraunces',Georgia,serif;font-size:1.8rem;font-weight:800;">@orders.Count</div>
+                    </div>
+                    <div>
+                        <div style="font-size:.75rem;color:var(--text-3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Total Spent</div>
+                        <div style="font-family:'Fraunces',Georgia,serif;font-size:1.4rem;font-weight:800;color:var(--accent-2);">₱@orders.Sum(o => o.TotalAmount).ToString("N2")</div>
+                    </div>
+                    <div>
+                        <div style="font-size:.75rem;color:var(--text-3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Last Order</div>
+                        <div style="font-size:.9rem;color:var(--text);">@(orders.Any() ? orders.Max(o => o.OrderDate).ToString("MMM d, yyyy") : "—")</div>
+                    </div>
+                </div>
+                <div style="margin-top:20px;">
+                    <a asp-controller="Orders" asp-action="Create" class="btn btn-primary" style="width:100%;justify-content:center;">+ New Order</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

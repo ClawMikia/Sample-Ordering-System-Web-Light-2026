@@ -1,0 +1,37 @@
+@model OrderFlowMVC.Models.ProductDto
+@{ Layout = "_Layout"; ViewData["Title"] = Model.Name; var role = Context.Session.GetString("Role"); }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>@Model.Name</h1>
+        <p>Product #@Model.Id · @Model.Category</p>
+    </div>
+    <div class="flex gap-3 items-center">
+        @if (role == "Admin") { <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secondary">Edit Product</a> }
+        <a asp-action="Index" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="panel">
+        <div class="panel-header"><span class="panel-title">Product Details</span></div>
+        <div class="info-list">
+            <div class="info-row"><span class="info-key">Name</span><span class="info-val"><strong>@Model.Name</strong></span></div>
+            <div class="info-row"><span class="info-key">Description</span><span class="info-val">@Model.Description</span></div>
+            <div class="info-row"><span class="info-key">Category</span><span class="info-val"><span class="badge badge-processing">@Model.Category</span></span></div>
+            <div class="info-row"><span class="info-key">Price</span><span class="info-val"><strong style="font-family:'Fraunces',sans-serif;font-size:1.1rem;">₱@Model.Price.ToString("N2")</strong></span></div>
+            <div class="info-row"><span class="info-key">Stock</span><span class="info-val"><span class="badge @(Model.StockQuantity < 10 ? "badge-lowstock" : "badge-active")">@Model.StockQuantity units</span></span></div>
+            <div class="info-row"><span class="info-key">Status</span><span class="info-val"><span class="badge @(Model.IsActive ? "badge-active" : "badge-inactive")">@(Model.IsActive ? "Active" : "Inactive")</span></span></div>
+        </div>
+    </div>
+    <div class="panel" style="padding:20px;">
+        <div style="font-family:'Fraunces',sans-serif;font-size:2rem;font-weight:800;margin-bottom:4px;">₱@Model.Price.ToString("N0")</div>
+        <div style="font-size:.85rem;color:var(--text-2);margin-bottom:20px;">per unit</div>
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;">
+            <div style="font-size:.75rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Available Stock</div>
+            <div style="font-family:'Fraunces',sans-serif;font-size:1.6rem;font-weight:800;color:@(Model.StockQuantity < 10 ? "var(--warn)" : "var(--accent2)");">@Model.StockQuantity</div>
+            <div style="font-size:.78rem;color:var(--text-3);">@(Model.StockQuantity < 10 ? "⚠ Low stock warning" : "units available")</div>
+        </div>
+        <a asp-controller="Orders" asp-action="Create" class="btn btn-primary" style="width:100%;justify-content:center;">+ Add to Order</a>
+    </div>
+</div>

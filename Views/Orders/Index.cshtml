@@ -1,0 +1,85 @@
+@model List<OrderFlowMVC.Models.OrderDto>
+@{ Layout = "_Layout"; ViewData["Title"] = "Orders"; var role = Context.Session.GetString("Role"); }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Orders</h1>
+        <p>@Model.Count order(s) @(string.IsNullOrEmpty(ViewBag.SelectedStatus?.ToString()) ? "total" : $"with status \"{ViewBag.SelectedStatus}\"")</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Order
+    </a>
+</div>
+
+<div class="filter-pills mb-6">
+    @{ var statuses = new[] { "Pending","Processing","Shipped","Delivered","Cancelled" }; }
+    <a asp-action="Index" class="pill @(ViewBag.SelectedStatus == null ? "active" : "")">All</a>
+    @foreach (var s in statuses)
+    {
+        <a asp-action="Index" asp-route-status="@s" class="pill @(ViewBag.SelectedStatus == s ? "active" : "")">@s</a>
+    }
+</div>
+
+<div class="panel">
+    <div class="panel-body">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                <p>No orders found</p>
+            </div>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead><tr>
+                    <th>Order #</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th>
+                </tr></thead>
+                <tbody>
+                @foreach (var o in Model.OrderByDescending(x => x.OrderDate))
+                {
+                    <tr>
+                        <td><a asp-action="Details" asp-route-id="@o.Id" style="color:var(--accent);text-decoration:none;font-weight:700;">#@o.Id</a></td>
+                        <td><strong>@o.CustomerName</strong></td>
+                        <td class="text-muted">@o.OrderDate.ToString("MMM d, yyyy")</td>
+                        <td class="text-muted">@o.Items?.Count items</td>
+                        <td class="font-mono"><strong>₱@o.TotalAmount.ToString("N2")</strong></td>
+                        <td><span class="badge badge-@o.Status.ToLower()">@o.Status</span></td>
+                        <td>
+                            <div class="actions-cell">
+                                <a asp-action="Details" asp-route-id="@o.Id" class="btn-icon" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                                @if (role == "Admin") {
+                                    <button class="btn-icon" style="color:var(--danger)" title="Delete" onclick="confirmDelete(@o.Id)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <div class="modal-title">Delete Order?</div>
+        <div class="modal-body" id="deleteMsg">This action cannot be undone.</div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancel</button>
+            <form id="deleteForm" method="post">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function confirmDelete(id) {
+    document.getElementById('deleteForm').action = `/Orders/Delete/${id}`;
+    document.getElementById('deleteModal').classList.add('open');
+}
+</script>
+}

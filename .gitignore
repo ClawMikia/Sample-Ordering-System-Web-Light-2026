@@ -1,0 +1,70 @@
+# .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userprefs
+*.sln.docstates
+*.cache
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+*.log
+TestResults/
+*.coverage
+*.coveragexml
+*.gcov
+
+# Build outputs
+out/
+dist/
+publish/
+*.nupkg
+*.snupkg
+*.zip
+*.rar
+*.7z
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# NuGet
+packages/
+*.nupkg
+
+# Secrets & config
+secrets.json
+appsettings.Development.json
+appsettings.Local.json
+.env
+.env.*
+!.env.example
+
+# ASP.NET / IIS
+*.vspscc
+*.vssscc
+$tf/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Resharper
+_ReSharper*
+*.[Rr]e[sS]harper
+
+# Entity Framework Migrations snapshot
+Migrations/obj/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+~$*

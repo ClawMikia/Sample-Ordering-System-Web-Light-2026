@@ -1,0 +1,54 @@
+@model OrderFlowMVC.Models.CreateProductRequest
+@{ Layout = "_Layout"; ViewData["Title"] = "New Product"; }
+
+<div class="page-header">
+    <div class="page-header-left"><h1>New Product</h1><p>Add a new product to inventory</p></div>
+    <a asp-action="Index" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="form-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-grid form-grid-2">
+            <div class="form-group col-2">
+                <label class="form-label">Product Name</label>
+                <input asp-for="Name" class="form-control" placeholder="Laptop Pro 15" />
+                <span asp-validation-for="Name" class="field-validation-error"></span>
+            </div>
+            <div class="form-group col-2">
+                <label class="form-label">Description</label>
+                <textarea asp-for="Description" class="form-control" placeholder="Brief product description…"></textarea>
+                <span asp-validation-for="Description" class="field-validation-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Price (₱)</label>
+                <input asp-for="Price" type="number" step="0.01" min="0" class="form-control" placeholder="1500.00" />
+                <span asp-validation-for="Price" class="field-validation-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Stock Quantity</label>
+                <input asp-for="StockQuantity" type="number" min="0" class="form-control" placeholder="50" />
+                <span asp-validation-for="StockQuantity" class="field-validation-error"></span>
+            </div>
+            <div class="form-group col-2">
+                <label class="form-label">Category</label>
+                <input asp-for="Category" class="form-control" placeholder="Electronics, Accessories…" list="cat-list" />
+                <datalist id="cat-list">
+                    <option value="Electronics"/>
+                    <option value="Accessories"/>
+                    <option value="Peripherals"/>
+                    <option value="Software"/>
+                    <option value="Office Supplies"/>
+                </datalist>
+                <span asp-validation-for="Category" class="field-validation-error"></span>
+            </div>
+        </div>
+        <div class="form-actions" style="margin-top:20px;">
+            <button type="submit" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                Create Product
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
