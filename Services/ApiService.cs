@@ -41,6 +41,7 @@ public class ApiService : IApiService
 
     private static readonly JsonSerializerOptions _json = new()
     {
+        PropertyNamingPolicy        = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
     };
 
